@@ -16,6 +16,10 @@ use WHMCS\Database\Capsule;
  * @link       https://leemahoney.dev
  */
 
+if (!defined('WHMCS')) {
+    die('You cannot access this file directly.');
+}
+
 function cron_capture_payment($vars) {
 
     # How many days before the due date you wish to capture payment

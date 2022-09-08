@@ -68,8 +68,7 @@ function cron_capture_payment($vars) {
             $result = localAPI('CapturePayment', [
                 'invoiceid' => $invoice->id
             ]);
-
-            print_r($result);
+            
             # If $logErrors is true and an error is present, log it to the clients log
             if ($result['result'] === 'error' && $logErrors) {
                 logActivity("Automatic payment capture hook failed on invoice #{$invoice->id}: {$result['message']}", $invoice->userid);

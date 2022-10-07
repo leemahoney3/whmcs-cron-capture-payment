@@ -1,7 +1,7 @@
 <?php
 
 use WHMCS\Carbon;
-use WHMCS\Database\Capsule;
+use WHMCS\Billing\Invoice;
 
 /**
  * WHMCS Cron Capture Payment
@@ -12,13 +12,9 @@ use WHMCS\Database\Capsule;
  * @author     Lee Mahoney <lee@leemahoney.dev>
  * @copyright  Copyright (c) Lee Mahoney 2022
  * @license    MIT License
- * @version    1.0.1
+ * @version    1.0.2
  * @link       https://leemahoney.dev
  */
-
-if (!defined('WHMCS')) {
-    die('You cannot access this file directly.');
-}
 
 function cron_capture_payment($vars) {
 
@@ -27,7 +23,7 @@ function cron_capture_payment($vars) {
     $daysBeforeDueDateToCapture = 0;
 
     # What hours of the day you wish to capture payment (e.g. '06' is 6am, '18' is 6pm)
-    $captureHours = ['00', '06', '12', '18'];
+    $captureHours = ['00', '06', '12', '18', '21'];
 
     # Which minute after the hour you wish this check to run at (e.g. if your cron is set to run every 5 minutes, can set this to 5, 10, 15, 20, 25, etc...)
     $captureMinute = 10;
@@ -54,7 +50,7 @@ function cron_capture_payment($vars) {
         $theDueDate = Carbon::now()->addDays($daysBeforeDueDateToCapture)->format('Y-m-d');
 
         # Grab all unpaid invoices that match the due date
-        $invoices = Capsule::table('tblinvoices')->where('duedate', $theDueDate)->where('status', 'Unpaid')->get();
+        $invoices = Invoice::where('duedate', $theDueDate)->where('status', 'Unpaid')->get();
 
         # Loop through the invoices
         foreach ($invoices as $invoice) {
@@ -68,7 +64,8 @@ function cron_capture_payment($vars) {
             $result = localAPI('CapturePayment', [
                 'invoiceid' => $invoice->id
             ]);
-            
+
+            print_r($result);
             # If $logErrors is true and an error is present, log it to the clients log
             if ($result['result'] === 'error' && $logErrors) {
                 logActivity("Automatic payment capture hook failed on invoice #{$invoice->id}: {$result['message']}", $invoice->userid);
